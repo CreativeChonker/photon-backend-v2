@@ -19,6 +19,15 @@ if gcp_key:
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
+if OPENAI_API_KEY:
+    try:
+        client.models.list()  # test if key works
+        print("✅ OpenAI initialized successfully")
+    except Exception as e:
+        print("❌ OpenAI init failed:", e)
+else:
+    print("⚠️ No OpenAI key found in environment")
+
 # ── DISABLE KERAS ─────────────────────────────────────────────────────────────
 KERAS_AVAILABLE = False
 keras_model = None
@@ -232,3 +241,4 @@ def healthz():
 # ── BOOT ──────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+
