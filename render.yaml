@@ -1,25 +1,43 @@
-# render.yaml  — backend
+# render.yaml — backend
 services:
   - type: web
     name: ocr-prototype-backend
     runtime: python
     branch: main
-    # rootDir: backend   # uncomment & set if your backend is in a subfolder
+    plan: starter            # or "free" if that's your plan
 
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn -w 2 -k gevent -b 0.0.0.0:$PORT app:app
+    # If backend is in a subfolder, uncomment and set:
+    # rootDir: backend
+
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+
+    # Socket.IO friendly (eventlet). If your file isn't app.py, change "app:app".
+    startCommand: gunicorn -k eventlet -w 1 -b 0.0.0.0:$PORT app:app
 
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
       - key: PYTHONUNBUFFERED
         value: "1"
       - key: CORS_ORIGIN
-        value: https://photon-frontend.onrender.com   # change to your real frontend URL after deploy
+        value: "*"                            # set to your frontend URL after it's live
       - key: OPENAI_API_KEY
-        sync: false
-      - key: GOOGLE_CREDENTIALS
-        sync: false
+        sync: false                           # fill in on Render
+      - key: PHOTON_OCR_MODEL
+        value: models/final_ocr_model_v5.keras
+      - key: PHOTON_OCR_CLASSES
+        value: models/classes_final.npy
       - key: GOOGLE_APPLICATION_CREDENTIALS
-        value: /opt/render/project/src/ga.json
+        value: /etc/secrets/gcp.json          # where Render mounts the secret file
+      - key: GOOGLE_CREDENTIALS
+        sync: false                           # paste full JSON in Render (used below)
+
+    # Create /etc/secrets/gcp.json from the GOOGLE_CREDENTIALS value (kept off-repo)
+    secretFiles:
+      - name: gcp.json
+        content: ${GOOGLE_CREDENTIALS}
 
     healthCheckPath: /healthz
     autoDeploy: true
