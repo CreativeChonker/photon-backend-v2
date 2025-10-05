@@ -41,3 +41,8 @@ services:
 
     healthCheckPath: /healthz
     autoDeploy: true
+
+
+    healthCheckPath: /healthz
+    autoDeploy: true
+
