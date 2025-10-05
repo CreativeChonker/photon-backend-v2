@@ -9,3 +9,4 @@ opencv-python-headless==4.10.0.84
 pillow==10.4.0
 python-dotenv
 openai>=1.0.0
+gunicorn==21.2.0
