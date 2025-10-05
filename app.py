@@ -64,6 +64,12 @@ def home():
     return jsonify({"status": "ok", "message": "Photon backend active"})
 
 
+@app.route("/healthz")
+def healthz():
+    """Health check endpoint for Render"""
+    return jsonify({"status": "healthy"}), 200
+
+
 @app.route("/test_openai", methods=["GET"])
 def test_openai():
     """Quick sanity test to confirm OpenAI key works."""
@@ -126,14 +132,16 @@ def ocr_image():
             return jsonify({"text": "", "confidence": 0})
 
         detected_text = texts[0].description
-        confidence = round(sum([d.confidence for d in response.text_annotations[1:]]) / max(1, len(response.text_annotations[1:])), 2)
+        confidence = round(
+            sum([d.confidence for d in response.text_annotations[1:]]) / max(1, len(response.text_annotations[1:])), 2
+        )
         return jsonify({"text": detected_text, "confidence": confidence})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
 # ============================================
-# MAIN
+# MAIN ENTRY
 # ============================================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
