@@ -22,7 +22,16 @@ import eventlet
 app = Flask(__name__)
 
 # ✅ Robust CORS (allows preflight + uploads)
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+CORS(app, resources={r"/*": {
+    "origins": [
+        "https://photon-frontend-v2.onrender.com",
+        "http://localhost:3000"
+    ],
+    "allow_headers": ["Content-Type", "Authorization"],
+    "expose_headers": ["Content-Type", "Authorization"],
+    "supports_credentials": True
+}})
+
 
 @app.after_request
 def add_cors_headers(response):
@@ -149,3 +158,4 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     print(f"🚀 Photon backend running on port {port}")
     eventlet.wsgi.server(eventlet.listen(("0.0.0.0", port)), app)
+
