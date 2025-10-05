@@ -1,0 +1,12 @@
+flask
+flask-cors
+flask-socketio
+eventlet
+google-cloud-vision
+tensorflow==2.15.0
+keras==3.3.3
+numpy
+opencv-python-headless
+pillow
+python-dotenv
+openai
