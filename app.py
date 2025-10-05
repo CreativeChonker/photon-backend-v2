@@ -21,16 +21,17 @@ import eventlet
 # --- Flask setup ---
 app = Flask(__name__)
 
-# Allow only your frontend to access
-CORS(app, resources={r"/*": {"origins": ["https://photon-frontend-v2.onrender.com"]}})
+# ✅ Robust CORS (allows preflight + uploads)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
-# Optional safety header injection
 @app.after_request
 def add_cors_headers(response):
     response.headers.add("Access-Control-Allow-Origin", "https://photon-frontend-v2.onrender.com")
     response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
     response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+    response.headers.add("Access-Control-Allow-Credentials", "true")
     return response
+
 
 # --- Environment setup ---
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -40,6 +41,7 @@ if not OPENAI_API_KEY:
 GOOGLE_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 if not GOOGLE_CREDENTIALS:
     print("⚠️ GOOGLE_APPLICATION_CREDENTIALS not set — Vision API will fail if used.")
+
 
 # --- Initialize clients ---
 try:
