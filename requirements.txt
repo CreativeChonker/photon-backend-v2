@@ -4,7 +4,6 @@ flask-socketio==5.3.6
 eventlet==0.33.3
 google-cloud-vision==3.10.2
 tensorflow-cpu==2.20.0
-keras==3.4.1
 numpy==1.26.4
 opencv-python-headless==4.10.0.84
 pillow==10.4.0
