@@ -153,4 +153,6 @@ def process_images_alias():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     print(f"🚀 Photon backend running on port {port}")
-    eventlet.wsgi.server(eventlet.listen(("0.0.0.0", port)), app)
+    app.run(host="0.0.0.0", port=port)
+
+
