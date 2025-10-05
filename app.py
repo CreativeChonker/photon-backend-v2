@@ -298,6 +298,12 @@ def indent_with_gpt_api():
 def home():
     return "✅ Photon OCR + Python Assistant is live!"
 
+@app.route("/healthz", methods=["GET"])
+def healthz():
+    return jsonify({"status": "ok"}), 200
+
+
 # ── BOOT ──────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+
