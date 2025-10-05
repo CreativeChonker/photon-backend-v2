@@ -21,24 +21,21 @@ import eventlet
 # --- Flask setup ---
 app = Flask(__name__)
 
-# ✅ Robust CORS (allows preflight + uploads)
-CORS(app, resources={r"/*": {
-    "origins": [
-        "https://photon-frontend-v2.onrender.com",
-        "http://localhost:3000"
-    ],
-    "allow_headers": ["Content-Type", "Authorization"],
-    "expose_headers": ["Content-Type", "Authorization"],
-    "supports_credentials": True
-}})
-
+# ✅ Dynamic, Render-safe CORS
+CORS(app, supports_credentials=True)
 
 @app.after_request
-def add_cors_headers(response):
-    response.headers.add("Access-Control-Allow-Origin", "https://photon-frontend-v2.onrender.com")
-    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
-    response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
-    response.headers.add("Access-Control-Allow-Credentials", "true")
+def apply_cors(response):
+    origin = request.headers.get("Origin")
+    allowed = [
+        "https://photon-frontend-v2.onrender.com",
+        "http://localhost:3000"
+    ]
+    if origin in allowed:
+        response.headers["Access-Control-Allow-Origin"] = origin
+    response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
     return response
 
 
@@ -81,25 +78,15 @@ def healthz():
     return jsonify({"status": "healthy"}), 200
 
 
-@app.route("/test_openai", methods=["GET"])
-def test_openai():
-    """Quick sanity test to confirm OpenAI key works."""
-    if not openai_client:
-        return jsonify({"error": "OpenAI client not initialized"}), 500
-
-    try:
-        resp = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": "Say 'Photon backend connected successfully!'"}],
-        )
-        return jsonify({"reply": resp.choices[0].message.content})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+# --- Preflight handler for AI route ---
+@app.route("/ask_ai", methods=["OPTIONS"])
+def ask_ai_preflight():
+    return '', 200
 
 
 @app.route("/ask_ai", methods=["POST"])
 def ask_ai():
-    """Main AI assistant endpoint (for your Assistant tab)."""
+    """Main AI assistant endpoint"""
     data = request.get_json()
     user_prompt = data.get("prompt", "").strip()
     if not user_prompt:
@@ -122,6 +109,7 @@ def ask_ai():
         return jsonify({"error": str(e)}), 500
 
 
+# --- OCR (Google Vision) ---
 @app.route("/ocr", methods=["POST"])
 def ocr_image():
     """OCR using Google Vision"""
@@ -151,6 +139,14 @@ def ocr_image():
         return jsonify({"error": str(e)}), 500
 
 
+# --- Preflight + alias for process_images ---
+@app.route("/process_images", methods=["POST", "OPTIONS"])
+def process_images_alias():
+    if request.method == "OPTIONS":
+        return '', 200
+    return ocr_image()
+
+
 # ============================================
 # MAIN ENTRY
 # ============================================
@@ -158,4 +154,3 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     print(f"🚀 Photon backend running on port {port}")
     eventlet.wsgi.server(eventlet.listen(("0.0.0.0", port)), app)
-
