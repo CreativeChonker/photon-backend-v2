@@ -237,8 +237,25 @@ def home():
 def healthz():
     return jsonify({"status": "ok"}), 200
 
+@app.route("/test_openai", methods=["GET"])
+def test_openai():
+    try:
+        if not client:
+            return jsonify({"error": "OpenAI client not initialized"}), 500
+
+        # quick sanity check call
+        resp = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": "Say 'Photon backend is connected!'"}],
+            max_tokens=20,
+        )
+        text = resp.choices[0].message.content.strip()
+        return jsonify({"response": text})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # ── BOOT ──────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+
 
